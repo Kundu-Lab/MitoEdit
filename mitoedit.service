@@ -1,0 +1,17 @@
+[Unit]
+Description=MitoEdit Docker Container
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=10
+# The - prefix tells systemd to ignore failures for these commands
+ExecStartPre=-/usr/bin/docker stop mitoedit
+ExecStartPre=-/usr/bin/docker rm mitoedit
+ExecStart=/usr/bin/docker run --restart=unless-stopped -p 443:443 -e PORT=443 -e MITOEDIT_PASSWORD=FindingCuresSavingChildren --name mitoedit mitoedit
+ExecStop=/usr/bin/docker stop mitoedit
+
+[Install]
+WantedBy=multi-user.target

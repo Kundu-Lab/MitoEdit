@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends, Cookie, Response, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.requests import Request
 from fastapi.security import APIKeyCookie
 import os
@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 # Add the parent directory to Python path so we can import mitocraft
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import mitocraft
+from mitocraft import MitocraftError, ReferenceBaseError, PipelineError, CommandError
 
 # Create necessary directories
 os.makedirs("web/static", exist_ok=True)
@@ -44,6 +45,28 @@ app.mount("/final_output", StaticFiles(directory="final_output"), name="final_ou
 
 # Setup templates
 templates = Jinja2Templates(directory="web/templates")
+
+# Middleware to redirect HTTP to HTTPS when SSL is enabled
+@app.middleware("http")
+async def redirect_http_to_https(request: Request, call_next):
+    # Check if SSL is enabled by looking for certificate files
+    ssl_keyfile = os.getenv("SSL_KEYFILE", "certs/mitoedit.key")
+    ssl_certfile = os.getenv("SSL_CERTFILE", "certs/mitoedit.pem")
+    ssl_enabled = os.path.exists(ssl_keyfile) and os.path.exists(ssl_certfile)
+    
+    if ssl_enabled and request.url.scheme == "http":
+        # Get the host and port from the request
+        host = request.headers.get("host", "").split(":")[0]
+        port = int(os.getenv("PORT", "443"))
+        
+        # Create the HTTPS URL
+        url = request.url.replace(scheme="https", netloc=f"{host}:{port}")
+        
+        # Return a redirect response
+        return RedirectResponse(url=str(url))
+    
+    # Continue with the request if not redirecting
+    return await call_next(request)
 
 # Authentication dependency
 async def get_current_user(auth_token: Optional[str] = Cookie(None, alias=COOKIE_NAME)):
@@ -179,7 +202,31 @@ async def analyze_sequence(
             logger.info(f"Running mitocraft with args: {args}")
             sys.argv = args
             mitocraft.main()
-            logger.info("Analysis completed successfully")
+            logger.info("Analysis completed successfully")  
+        except ReferenceBaseError as e:
+            logger.error(f"Reference base error: {str(e)}")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Reference base error: {str(e)}"
+            )
+        except PipelineError as e:
+            logger.error(f"Pipeline error: {str(e)}")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Pipeline error: {str(e)}"
+            )
+        except CommandError as e:
+            logger.error(f"Command execution error: {str(e)}")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Command execution error: {str(e)}"
+            )
+        except MitocraftError as e:
+            logger.error(f"Mitocraft error: {str(e)}")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Analysis error: {str(e)}"
+            )
         except Exception as e:
             logger.error(f"Error during mitocraft analysis: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Analysis error: {str(e)}")
@@ -211,5 +258,24 @@ async def analyze_sequence(
 if __name__ == "__main__":
     import uvicorn
     import os
+    
     port = int(os.getenv("PORT", "8000"))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    
+    # Check if SSL certificate and key files exist
+    ssl_keyfile = os.getenv("SSL_KEYFILE", "certs/mitoedit.key")
+    ssl_certfile = os.getenv("SSL_CERTFILE", "certs/mitoedit.pem")
+    
+    use_ssl = os.path.exists(ssl_keyfile) and os.path.exists(ssl_certfile)
+    
+    if use_ssl:
+        logger.info(f"Starting HTTPS server on port {port} with SSL")
+        uvicorn.run(
+            app, 
+            host="0.0.0.0", 
+            port=port,
+            ssl_keyfile=ssl_keyfile,
+            ssl_certfile=ssl_certfile
+        )
+    else:
+        logger.info(f"Starting HTTP server on port {port} without SSL")
+        uvicorn.run(app, host="0.0.0.0", port=port)

@@ -7,6 +7,9 @@ WORKDIR /app
 COPY web-environment.yml .
 COPY talen-environment.yml .
 
+# Create directory for SSL certificates
+RUN mkdir -p /app/certs
+
 # Create environments using conda
 RUN conda env create -f web-environment.yml && \
     conda env create -f talen-environment.yml && \
@@ -16,8 +19,13 @@ RUN conda env create -f web-environment.yml && \
 RUN conda init bash && \
     echo "conda activate mitoedit-web" >> ~/.bashrc
 
-# Expose port 80
+# Expose HTTP and HTTPS ports
 EXPOSE 80
+EXPOSE 443
+
+# Copy SSL certificates
+COPY certs/mitoedit.pem /app/certs/
+COPY certs/mitoedit.key /app/certs/
 
 # Set environment variables
 ENV PORT=80
@@ -26,6 +34,10 @@ ENV PORT=80
 
 # Copy application code
 COPY . .
+
+# Set SSL environment variables
+ENV SSL_CERTFILE=/app/certs/mitoedit.pem
+ENV SSL_KEYFILE=/app/certs/mitoedit.key
 
 # Start the web server
 CMD ["conda", "run", "--no-capture-output", "-n", "mitoedit-web", "python", "web/main.py"]

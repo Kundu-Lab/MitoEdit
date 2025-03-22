@@ -12,6 +12,23 @@ import subprocess
 import re
 import random
 
+# Custom exceptions for error handling
+class MitocraftError(Exception):
+    """Base exception for Mitocraft errors."""
+    pass
+
+class ReferenceBaseError(MitocraftError):
+    """Exception raised when reference base doesn't match."""
+    pass
+
+class PipelineError(MitocraftError):
+    """Exception raised when no suitable pipeline is found."""
+    pass
+
+class CommandError(MitocraftError):
+    """Exception raised when a command execution fails."""
+    pass
+
 # Setting up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename='logging_main.log')
 logger = logging.getLogger(__name__)
@@ -72,7 +89,7 @@ def run_findTAL(TALEN_dir, FASTA_fn, OUT_fn):
             raise RuntimeError(f"Command failed with return code {result}.")
     except Exception as e:
         logger.error("Error executing command: %s", e)
-        sys.exit(1)
+        raise CommandError(f"Error executing command: {e}")
 
 
 def process_talen_output(all_windows_df, bystanders_df, txt_file_path, output_excel_file_path):
@@ -248,7 +265,7 @@ def main():
         logger.error("Incorrect reference base at position %d. User Input: %s, Actual Reference: %s", 
                      args.position, reference_base, mtDNA_seq[args.position - 1].upper())
         print(f"Incorrect reference base at position {args.position}. Expected: {reference_base}, Found: {mtDNA_seq[args.position - 1].upper()}")
-        sys.exit(1)
+        raise ReferenceBaseError(f"Incorrect reference base at position {args.position}. Expected: {reference_base}, Found: {mtDNA_seq[args.position - 1].upper()}")
 
      # Define pipelines based on reference and mutant bases
     if (reference_base, mutant_base) in [('C', 'T'), ('G', 'A')]:
@@ -260,7 +277,7 @@ def main():
     else:
         print(f"No pipeline found for reference base {reference_base} and the mutant base {mutant_base}")
         logger.error("No pipeline found for reference base %s and mutant base %s.", reference_base, mutant_base)
-        sys.exit(1)
+        raise PipelineError(f"No pipeline found for reference base {reference_base} and the mutant base {mutant_base}")
 
     all_windows_combined = pd.DataFrame()  
     all_bystanders_combined = pd.DataFrame()

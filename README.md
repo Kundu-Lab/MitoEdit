@@ -115,11 +115,20 @@ sudo docker build -t mitoedit .
 ```
 
 2. **Run the container:**
+
+For HTTP (port 80):
 ```bash
 sudo docker run -d -p 80:80 -e MITOEDIT_PASSWORD=your_secure_password mitoedit
 ```
 
-The web interface will be available at http://localhost:80
+For HTTPS (port 443):
+```bash
+sudo docker run -d -p 443:443 -e PORT=443 -e MITOEDIT_PASSWORD=your_secure_password mitoedit
+```
+
+The web interface will be available at:
+- HTTP: http://localhost:80 (when using port 80)
+- HTTPS: https://localhost:443 (when using port 443)
 
 #### Stopping/Terminating the Docker Container
 
@@ -144,7 +153,40 @@ sudo docker rm <container_id>
 #### Docker Troubleshooting
 - Ensure Docker is running on your system
 - Check if port 80 is available (if not, you can map to a different port using `-p 8000:80` for example)
+- For HTTPS, check if port 443 is available (if not, you can map to a different port using `-p 8443:443` for example)
 - If you encounter permission issues, ensure you have the necessary privileges to run Docker commands
+
+### Running as a Systemd Service
+
+You can set up MitoEdit as a systemd service to run automatically on system boot:
+
+1. **Create the service file:**
+
+The repository includes a `mitoedit.service` file that defines how to run the Docker container as a systemd service.
+
+2. **Install the service:**
+
+Run the provided installation script with sudo:
+```bash
+sudo ./install_mitoedit_service.sh
+```
+
+3. **Managing the service:**
+
+Once installed, you can manage the service using standard systemd commands:
+```bash
+sudo systemctl start mitoedit.service
+sudo systemctl stop mitoedit.service
+sudo systemctl restart mitoedit.service
+sudo systemctl status mitoedit.service
+```
+
+4. **Accessing the web interface:**
+
+When the service is running, access the MitoEdit web interface at:
+```
+https://localhost:443
+```
 
 ## What input parameters does MitoEdit require?
 MitoEdit requires the following parameters:

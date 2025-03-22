@@ -168,6 +168,15 @@ test/output/
 software/talent_tools_master/re_dict_dump
 software/talent_tools_master/utils/sequence_versions_dump
 
+# SSL certificates
+certs/
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+
 # Data files
 *.xlsx
 *.fasta
