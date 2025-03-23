@@ -254,14 +254,14 @@ When you run this command, MitoEdit generates an Excel file named `final_11696.x
 **Note**: The [  ] represents the target base and {  } represent bystander edits.
 
 **1. All_Windows Sheet**
-| Pipeline|  Position |Reference Base | Mutant Base | Window Size | Window Sequence | Target Location | Number of bystanders | Position of Bystanders | Optimal Flanking TALEs | Flag CheckBystanderEffect |
+| Pipeline|  Position |Reference Base | Mutant Base | Window Size | Window Sequence | Target Location | Number of bystanders | Position of Bystanders | Optimal Flanking TALEs | Flag-CheckBystanderEffect |
 |--------------|----------------------------|--------------|--------------|--------------|--------------|--------------|--------------|--------------|--------------|--------------|
 |Mok2022_G1397_DddA11|		11696	|G|	A	|14bp|	GCA[G]TCATT{C}TCAT|	Position 4 from the 5' end	|1|	[11702]	|FALSE	| -
 |Mok2022_G1397_DddA11	|	11696	|G	|A|	14bp|	CGCA[G]TCATT{C}TCA|	Position 5 from the 5' end|	1|	[11702]|	FALSE|	 -
 |Mok2022_G1397_DddA11	|11696|G	|A|	14bp|	GCGCA[G]T{C}ATTCTC|	Position 6 from the 5' end|	1	|[11698]	|FALSE	| -
 |Mok2022_G1397_DddA11	|	11696	|G|	A|	14bp	|GGCGCA[G]T{C}ATTCT|	Position 7 from the 5' end|	1|	[11698]|	FALSE	| -
 
-**Note:** If the column `Flag CheckBystanderEffect=TRUE`, you should manually check the results for potential amino acid changes caused by neighbouring bystanders on the same codon.
+**Note:** If the column `Flag-CheckBystanderEffect=TRUE`, you should manually check the results for potential amino acid changes caused by neighbouring bystanders on the same codon.
 
 **2. Bystanders_Effects Sheet**
 |Bystander Position|	Reference Base|	Mutant Base|	Location On Genome|	Predicted Mutation Impact	|SNV Type|	AA Variant|	Functional Impact|	MutationAssessor Score|
@@ -280,7 +280,7 @@ python mitocraft.py --input_file test.txt 33 G A
 When using an input file, the generated Excel file will contain only one spreadsheet, similar to the following: (example taken from the file provided in the [test file](test/input/test.txt) folder)
 
 **1. All_Windows Sheet**
-| Pipeline| Position |Reference_Base | Mutant Base | Window Size | Window Sequence | Target Location| Number of bystanders | Position of Bystanders | Optimal Flanking TALEs | Flag_CheckBystanderEffect |LeftTALE1 |	RightTALE1|LeftTALE2|RightTALE2 |
+| Pipeline| Position |Reference_Base | Mutant Base | Window Size | Window Sequence | Target Location| Number of bystanders | Position of Bystanders | Optimal Flanking TALEs | Flag-CheckBystanderEffect |LeftTALE1 |	RightTALE1|LeftTALE2|RightTALE2 |
 |--------------|--------------|--------------|--------------|--------------|--------------|--------------|--------------|--------------|--------------|--------------|--------------|--------|---------|-------------|
 |Mok2020_G1397|	33|	G|	A|	14bp|	TG{G}[G]A{G}AACT{C}TCT|	Position 4 from the 5' end	|3|	[32, 35, 40]	|FALSE|	TRUE|				
 |Mok2020_G1397|	33|	G|	A|	14bp|	CTG{G}[G]A{G}AACTCTC|	Position 5 from the 5' end|	2|	[32, 35]|	FALSE|	TRUE	|			
